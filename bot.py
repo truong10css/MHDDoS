@@ -116,7 +116,8 @@ async def attack(update: Update, context: CallbackContext):
     user_id = str(update.effective_user.id)
     args = context.args
 
-    if user_id not in users:
+    # Kiểm tra quyền (cả admin và user đều được dùng)
+    if user_id not in users and user_id not in admins:
         await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
