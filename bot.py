@@ -5,7 +5,7 @@ import re
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
-TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TELEGRAM_BOT_TOKEN = "7566533314:AAHaYpNzERykihJBDlt0N-Pzbf5cWLBmko0"
 ADMIN_USER_ID = 6142730696  # Thay đổi thành ID Telegram của bạn
 USERS_FILE = "users.txt"
 attack_in_progress = False
