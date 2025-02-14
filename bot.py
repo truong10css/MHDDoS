@@ -1,11 +1,11 @@
-import asyncio
+ import asyncio
 import os
 import signal
 import re
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
-TELEGRAM_BOT_TOKEN = "7566533314:AAHaYpNzERykihJBDlt0N-Pzbf5cWLBmko0"
+TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
 ADMIN_USER_ID = 6142730696  # Thay đổi thành ID Telegram của bạn
 USERS_FILE = "users.txt"
 attack_in_progress = False
@@ -121,7 +121,7 @@ async def stop(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     user_id = str(update.effective_user.id)
 
-    if user_id != str(ADMIN_USER_ID):
+    if int(user_id) != ADMIN_USER_ID:
         await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
@@ -145,7 +145,12 @@ async def stop(update: Update, context: CallbackContext):
 
     except Exception as e:
         await context.bot.send_message(chat_id=chat_id, text=f"*⚠️ Lỗi khi dừng tấn công: {str(e)}*", parse_mode="Markdown")
-
+        
+async def get_id(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    user_id = update.effective_user.id
+    await context.bot.send_message(chat_id=chat_id, text=f"ID của bạn là: {user_id}")
+    
 def main():
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
